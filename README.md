@@ -9,7 +9,7 @@ Threat Report ATT&CK<sup>®</sup> Mapping (TRAM) is a tool to aid analyst in map
 ## Installation
 Start by cloning this repository.
 ```
-git clone git@github.com:ferbillzi/tram-1.git
+git clone https://github.com/ferbillzi/tram-1.git
 ```
 From the root of this project, install the PIP requirements.
 ```
