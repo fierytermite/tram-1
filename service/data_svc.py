@@ -49,10 +49,14 @@ class DataService:
 
         # add all of the patterns and dictionary keys/values for each technique and software
         for i in attack["techniques"]:
+            if "description" in i:
+                descr = i['description'].replace('<code>', '').replace('</code>', '').replace(
+                        '\n', '').encode('ascii', 'ignore').decode('ascii')
+            else:
+                descr = "missing description"
             references[i["id"]] = {"name": i["name"], "id": i["external_references"][0]["external_id"],
                                    "example_uses": [],
-                                   "description": i['description'].replace('<code>', '').replace('</code>', '').replace(
-                                       '\n', '').encode('ascii', 'ignore').decode('ascii'),
+                                   "description": descr,
                                    "similar_words": [i["name"]]}
 
         for i in attack["relationships"]:
