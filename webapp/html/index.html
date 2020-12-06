@@ -48,6 +48,7 @@
                                 {% for report in queue %}
                                 <div class="card shadow-sm" id="queue-{{report.uid}}">
                                 <div class="card-body">
+                                <p class="card-text">{{report.uid}}</p>
                                     <!--<a onclick="deleteReport({{report.uid}})"
                                        class="glyphicon glyphicon-trash btn-sm btn-outline-danger float-right"></a>-->
                                     <p>
@@ -69,7 +70,7 @@
                             <h6 class="card-title text-uppercase text-truncate py-2">Needs Review</h6>
                             <div class="items border border-light">
                                 {% for report in needs_review %}
-                                <div class="card draggable shadow-sm" id="needs_review-{{report.uid}}" draggable="true" ondragstart="drag(event)">
+                                <div class="card draggable shadow-sm" id="needs-review_{{report.uid}}" draggable="true" ondragstart="drag(event)">
                                 <div class="card-body">
                                     <a onclick="deleteReport({{report.uid}})"
                                        class="glyphicon glyphicon-trash btn-sm btn-outline-danger float-right"></a>
@@ -95,12 +96,11 @@
                             <h6 class="card-title text-uppercase text-truncate py-2">Analyst Reviewing</h6>
                             <div class="items border border-light">
                                 {% for report in in_review %}
-                                <div class="card draggable shadow-sm" id="review-{{report.uid}}" draggable="true" ondragstart="drag(event)">
+                                <div class="card draggable shadow-sm" id="review_{{report.uid}}" draggable="true" ondragstart="drag(event)">
                                 <div class="card-body">
                                     <a onclick="deleteReport({{report.uid}})"
                                        class="glyphicon glyphicon-trash btn-sm btn-outline-danger float-right"></a>
                                     <p>
-                                    <p class="card-text">{{report.title}}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">
                                                 <a href="{{report.url}}" class="btn btn-sm btn-outline-secondary">View Source</a>
@@ -117,15 +117,15 @@
                 </div>
                 <div class="col-sm-6 col-md-4 col-xl-3">
                     <div id="hello" class="card">
-                        <div id="hellothere" class="card-body">
+                        <div id="completed" class="card-body">
                             <h6 class="card-title text-uppercase text-truncate py-2">Complete</h6>
-                            <div id="completed" class="items border border-light">
+                            <div class="items border border-light">
                                 {% for report in completed %}
-                                <div class="card draggable shadow-sm" id="completed-{{report.uid}}" draggable="true" ondragstart="drag(event)">
+                                <div class="card draggable shadow-sm" id="completed_{{report.uid}}" draggable="true" ondragstart="drag(event)">
                                 <div class="card-body">
                                     <a onclick="deleteReport({{report.uid}})"
                                        class="glyphicon glyphicon-trash btn-sm btn-outline-danger float-right"></a>
-                                    <p>
+                        
                                     <p class="card-text">{{report.title}}</p>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group">

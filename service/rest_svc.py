@@ -2,6 +2,7 @@ import json
 import asyncio
 from io import StringIO
 import pandas as pd
+from IPython import embed
 
 class RestService:
 
@@ -13,6 +14,14 @@ class RestService:
         self.reg_svc = reg_svc
         self.queue = asyncio.Queue() # task queue
         self.resources = [] # resource array
+
+    async def update_report_status(self, uid):
+        # Updates the database for when the report analysis is completed
+        uid = uid['report_id'].split('_')[1]
+        query = (
+            f"UPDATE reports SET current_status=\'completed\' WHERE uid={uid}")
+        # Run the SQL update query
+        hits = await self.dao.raw_query(query)
 
     async def false_negative(self, criteria=None):
         sentence_dict = await self.dao.get('report_sentences', dict(uid=criteria['sentence_id']))

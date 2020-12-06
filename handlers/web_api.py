@@ -51,7 +51,8 @@ class WebAPI:
                 delete_report=lambda d: self.rest_svc.delete_report(criteria=d),
                 sentence_context=lambda d: self.rest_svc.sentence_context(criteria=d),
                 confirmed_sentences=lambda d: self.rest_svc.confirmed_sentences(criteria=d),
-                missing_technique=lambda d: self.rest_svc.missing_technique(criteria=d)
+                missing_technique=lambda d: self.rest_svc.missing_technique(criteria=d),
+                update_report_status=lambda d: self.rest_svc.update_report_status(uid=d)
             ))
         output = await options[request.method][index](data)
         return web.json_response(output)
