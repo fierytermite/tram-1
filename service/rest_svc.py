@@ -2,7 +2,7 @@ import json
 import asyncio
 from io import StringIO
 import pandas as pd
-from IPython import embed
+import conf.config as config
 
 class RestService:
 
@@ -88,16 +88,43 @@ class RestService:
                                                       false_positive=sentence_to_insert))
         return dict(status='inserted', last=last)
 
+    # This function will query the database until the report sent by the tmc reaches "completed" status. 
+    # Once it happens, it will issue a request to the TMC with the mapping for that report.
+    async def wait_analysis_completion(self, report_id):
+        
+        report_status = '' 
+
+        while not report_status:
+            
+            await asyncio.sleep(100) # Set waiting period between queries to avoid DoSing the app
+            
+            query=(f"SELECT current_status FROM reports WHERE uid = {report_id}")
+            verify_status = await self.dao.raw_query(query) 
+
+            if verify_status[0] == 'completed':
+
+                report_status = verify_status[0]
+
+                query=(f"SELECT attack_tid FROM report_sentence_hits WHERE uid = {report_id}")1
+                tram_mapping = await self.dao.raw_query(query)
+                
+                tmc_response = {
+                    "tram_mapping": tram_mapping
+                }
+
+                url = config.tmc + "/tram-response"
+                r = requests.post(url=url, data=tram_mapping, headers={"content-type":"application/json"})
+
+
     async def insert_report(self, criteria=None):
-        # criteria['id'] = await self.dao.insert('reports', dict(title=criteria['title'], url=criteria['url'],
-        #                                                       current_status="needs_review"))
         for i in range(len(criteria['title'])):
             temp_dict = dict(title=criteria['title'][i], url=criteria['url'][i],current_status="queue")
             temp_dict['id'] = await self.dao.insert('reports', temp_dict)
-            await self.queue.put(temp_dict)
-        # criteria = dict(title=criteria['title'], url=criteria['url'],current_status="needs_review")
-        # await self.queue.put(criteria)
-        asyncio.create_task(self.check_queue()) # check queue background task
+            await self.queue.put(temp_dict)   
+        if criteria['request']: # Checks if the insert_report request was sent by the TMC
+            asyncio.create_task(self.check_queue(temp_dict['id'] )) # sends the ID of the report to track its progress
+        else:
+            asyncio.create_task(self.check_queue()) # check queue background task
         await asyncio.sleep(0.01)
 
     async def insert_csv(self,criteria=None):
@@ -107,10 +134,10 @@ class RestService:
             temp_dict = dict(title=df['title'][row],url=df['url'][row],current_status="queue")
             temp_dict['id'] = await self.dao.insert('reports', temp_dict)
             await self.queue.put(temp_dict)
-        asyncio.create_task(self.check_queue())
+            asyncio.create_task(self.check_queue())
         await asyncio.sleep(0.01)
 
-    async def check_queue(self):
+    async def check_queue(self, tmc=''):
         '''
         description: executes as concurrent job, manages taking jobs off the queue and executing them.
         If a job is already being processed, wait until that job is done, then execute next job on queue.
@@ -127,8 +154,11 @@ class RestService:
             if len(self.resources) >= max_tasks:  # if the resource pool is maxed out...
                 while len(self.resources) >= max_tasks:  # check resource pool until a task is finished
                     for task in range(len(self.resources)):
+                        print('entre al for 2')
                         if self.resources[task].done():
                             del self.resources[task]  # when task is finished, remove from resource pool
+                        if tmc: # if the report was sent through a TMC request calls the function that checks its completion status
+                            await self.wait_analysis_completion(tmc)
                     await asyncio.sleep(1)  # allow other tasks to run while waiting
                 criteria = await self.queue.get()  # get next task off queue, and run it
                 task = asyncio.create_task(self.start_analysis(criteria))
@@ -137,6 +167,9 @@ class RestService:
                 criteria = await self.queue.get() # get next task off queue and run it
                 task = asyncio.create_task(self.start_analysis(criteria))
                 self.resources.append(task)
+                if tmc: # if the report was sent through a TMC request calls the function that checks its completion status
+                    await self.wait_analysis_completion(tmc)
+
 
     async def start_analysis(self, criteria=None):
         tech_data = await self.dao.get('attack_uids')

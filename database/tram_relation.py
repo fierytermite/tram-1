@@ -22,11 +22,14 @@ class Attack:
             sql = 'SELECT * FROM %s ' % table
             if criteria:
                 where = next(iter(criteria))
-                value = criteria.pop(where)
-                if value:
-                    sql += (' WHERE %s = "%s"' % (where, value))
-                    for k, v in criteria.items():
-                        sql += (' AND %s = "%s"' % (k, v))
+                try:
+                    value = criteria.pop(where)
+                    if value:
+                        sql += (' WHERE %s = "%s"' % (where, value))
+                        for k, v in criteria.items():
+                            sql += (' AND %s = "%s"' % (k, v))
+                except AttributeError:
+                    print(criteria)
             cursor.execute(sql)
             rows = cursor.fetchall()
             return [dict(ix) for ix in rows]

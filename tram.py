@@ -79,7 +79,8 @@ def main(host, port, taxii_local=False, build=False, json_file=None):
     :return: nil
     """
     loop = asyncio.get_event_loop()
-    loop.create_task(background_tasks(taxii_local=taxii_local, build=build, json_file=json_file))
+  #  loop.create_task(background_tasks(taxii_local=taxii_local, build=build, json_file=json_file))
+    loop.create_task(background_tasks(taxii_local='offline', build=False, json_file=json_file))
     loop.create_task(ml_svc.check_nltk_packs())
     loop.run_until_complete(init(host, port))
     try:
