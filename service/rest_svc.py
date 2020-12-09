@@ -2,7 +2,8 @@ import json
 import asyncio
 from io import StringIO
 import pandas as pd
-import conf.config as config
+import yaml
+import requests
 
 class RestService:
 
@@ -91,29 +92,38 @@ class RestService:
     # This function will query the database until the report sent by the tmc reaches "completed" status. 
     # Once it happens, it will issue a request to the TMC with the mapping for that report.
     async def wait_analysis_completion(self, report_id):
+
+        with open('conf/config.yml') as c:
+            config = yaml.safe_load(c)
+            tmc = config['tmc']
         
         report_status = '' 
 
         while not report_status:
+            print('inside while')
             
             await asyncio.sleep(100) # Set waiting period between queries to avoid DoSing the app
             
             query=(f"SELECT current_status FROM reports WHERE uid = {report_id}")
-            verify_status = await self.dao.raw_query(query) 
 
-            if verify_status[0] == 'completed':
+            try:
+                verify_status = await self.dao.raw_query(query) 
 
-                report_status = verify_status[0]
+                if verify_status[0] == 'completed':
+                    print('completed analysis')
 
-                query=(f"SELECT attack_tid FROM report_sentence_hits WHERE uid = {report_id}")1
-                tram_mapping = await self.dao.raw_query(query)
-                
-                tmc_response = {
-                    "tram_mapping": tram_mapping
-                }
+                    report_status = verify_status[0]
 
-                url = config.tmc + "/tram-response"
-                r = requests.post(url=url, data=tram_mapping, headers={"content-type":"application/json"})
+                    query=(f"SELECT attack_tid FROM report_sentence_hits WHERE report_uid = {report_id}")
+                    tram_mapping = await self.dao.raw_select(query)
+                    print('making request')
+                    tmc_response = json.dumps(tram_mapping)
+                    print(tmc_response)
+                    
+                    url = tmc + "/tram-response"
+                    r = requests.post(url=url, data=tmc_response, headers={"content-type":"application/json"})
+            except IndexError:
+                continue
 
 
     async def insert_report(self, criteria=None):

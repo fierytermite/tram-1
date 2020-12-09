@@ -100,6 +100,7 @@ if __name__ == '__main__':
         host = config['host']
         port = config['port']
         taxii_local = config['taxii-local']
+        tmc = config['tmc']
         json_file = os.path.join('models', config['json_file'])
         attack_dict = None
 

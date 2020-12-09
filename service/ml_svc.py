@@ -120,7 +120,6 @@ class MLService:
                                            attack_technique_name=attack_technique_name, report_uid=report_id, attack_tid = attack_tid))
             except IndexError:
                 print(attack_uid)
-                attack_technique = ''
                 continue
 
     async def get_true_negs(self):

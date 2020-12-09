@@ -37,7 +37,6 @@ class WebAPI:
         :param request: json data with rest request
         :return: json response
         """
-        print(request)
         data = dict(await request.json())
         index = data.pop('index')
         options = dict(
