@@ -4,6 +4,7 @@ from io import StringIO
 import pandas as pd
 import yaml
 import requests
+import logging
 
 class RestService:
 
@@ -100,26 +101,19 @@ class RestService:
         report_status = '' 
 
         while not report_status:
-            print('inside while')
-            
-            await asyncio.sleep(100) # Set waiting period between queries to avoid DoSing the app
-            
+            logging.info('Waiting for analysis completion')       
+            await asyncio.sleep(100) # Set waiting period between queries to avoid DoSing the app         
             query=(f"SELECT current_status FROM reports WHERE uid = {report_id}")
 
             try:
                 verify_status = await self.dao.raw_query(query) 
-
                 if verify_status[0] == 'completed':
-                    print('completed analysis')
-
                     report_status = verify_status[0]
-
+                    logging.info('Completed report analysis')
                     query=(f"SELECT attack_tid FROM report_sentence_hits WHERE report_uid = {report_id}")
                     tram_mapping = await self.dao.raw_select(query)
-                    print('making request')
-                    tmc_response = json.dumps(tram_mapping)
-                    print(tmc_response)
-                    
+                    logging.info('Sending TRAM analysis to TMC')
+                    tmc_response = json.dumps(tram_mapping)                    
                     url = tmc + "/tram-response"
                     r = requests.post(url=url, data=tmc_response, headers={"content-type":"application/json"})
             except IndexError:
