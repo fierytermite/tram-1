@@ -5,6 +5,8 @@ import pandas as pd
 import yaml
 import requests
 import logging
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 class RestService:
 
@@ -110,12 +112,17 @@ class RestService:
                 if verify_status[0] == 'completed':
                     report_status = verify_status[0]
                     logging.info('Completed report analysis')
-                    query=(f"SELECT attack_tid FROM report_sentence_hits WHERE report_uid = {report_id}")
+                    # Gets the report title, which contains the TMC ID, and the report's analysis results
+                    query=(f"SELECT title, attack_tid FROM report_sentence_hits rs \
+                                inner join reports r on r.uid = rs.report_uid \
+                                WHERE report_uid = {report_id}")
                     tram_mapping = await self.dao.raw_select(query)
                     logging.info('Sending TRAM analysis to TMC')
                     tmc_response = json.dumps(tram_mapping)                    
                     url = tmc + "/tram-response"
-                    r = requests.post(url=url, data=tmc_response, headers={"content-type":"application/json"})
+
+                    # Repeats request in case of failure
+                    requests.post(url=url, data=tmc_response, headers={"content-type":"application/json"})
             except IndexError:
                 continue
 
